@@ -36,18 +36,24 @@ public class WordCounter {
 
     public String countFrequencyOfWords(String input) throws ExecutionException, InterruptedException {
 
-        CompletableFuture<String> completableFuture
-                = new CompletableFuture<>();
-
-        Executors.newCachedThreadPool().submit(() -> {
             words = InputToCollectionProcessor.processInputIntoArrayList(input);
             freequencyWords = new HashMap<>();
 
             for (int i = 0; i < words.size(); i++) {
                 freequencyWords.compute(words.get(i), (k, v) -> v == null ? 1 : v + 1 );
             }
-            Map<String, Integer> sortedMap = WordSorter.sortByValue(freequencyWords);
-            Iterator i = sortedMap.entrySet().iterator();
+
+            Map reversedMap = new TreeMap<Integer, String>();
+            for (Map.Entry<String, Integer> entry : freequencyWords.entrySet()) {
+                if(reversedMap.containsKey(entry.getValue())){
+                    reversedMap.put(entry.getValue(), reversedMap.get(entry.getValue()) + ", " + entry.getKey() );
+                }
+                else{
+                    reversedMap.put(entry.getValue(),entry.getKey());
+                }
+            }
+
+            Iterator i = reversedMap.entrySet().iterator();
             String freequencyString="";
 
             while (i.hasNext()){
@@ -55,13 +61,8 @@ public class WordCounter {
                 freequencyString = pair.getKey() + " : " + pair.getValue().toString() + "\n" + freequencyString;
             }
 
-            completableFuture.complete(freequencyString);
-            return null;
-        });
 
-        Future<String> result = completableFuture;
-
-        return result.get();
+        return freequencyString;
     }
 
 
